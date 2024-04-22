@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Plugin, PluginSettingTab, Setting, addIcon, getIconIds } from 'obsidian';
 
 // Remember to rename these classes and interfaces!
 
@@ -10,19 +10,29 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	mySetting: 'default'
 }
 
-export default class MyPlugin extends Plugin {
+export default class SpacedRepetitionGenerator extends Plugin {
 	settings: MyPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
+		// const ids = getIconIds()
+		// console.log(ids)
+
+		this.addRibbonIcon('dice', 'transform', async () => {
+			var view = this.app.workspace.getActiveViewOfType(MarkdownView)
+			if (view?.data == null) {
+				return
+			}
+			var content = view.data
+			const prefix = "---\ntags:\n  - 🃏\n---\n\n"
+			const newContent = prefix + content
+				.replace(/^(#+.*)\n/gm, "$1\n—")
+				.replace(/\n\n/g, "<br>\n")
+				.replace(/(\n#)/gm, "\n$1")
+
+			view.setViewData(newContent, false)
 		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
 
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		const statusBarItemEl = this.addStatusBarItem();
@@ -108,9 +118,9 @@ class SampleModal extends Modal {
 }
 
 class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+	plugin: SpacedRepetitionGenerator;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: SpacedRepetitionGenerator) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
