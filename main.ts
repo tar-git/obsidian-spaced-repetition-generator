@@ -1,4 +1,5 @@
 import { App, Editor, MarkdownView, Modal, Plugin, PluginSettingTab, Setting, addIcon, getIconIds } from 'obsidian';
+import {FlashcardTransformer} from 'flashcard_transformer'
 
 // Remember to rename these classes and interfaces!
 
@@ -20,23 +21,13 @@ export default class SpacedRepetitionGenerator extends Plugin {
 		// console.log(ids)
 
 		this.addRibbonIcon('dice', 'transform', async () => {
-			var view = this.app.workspace.getActiveViewOfType(MarkdownView)
+			let view = this.app.workspace.getActiveViewOfType(MarkdownView)
 			if (view?.data == null) {
 				return
 			}
-			var content = view.data
-			const hasTags = /tags:\n +-/gm;
-			if (hasTags.exec(content) != null) {
-				const tags = /(^tags:\n(^( +)-.*\n)*)/gm;
-				content = content.replace(tags, `$1$3- 🃏\n`);
-			} else {
-				content = "---\ntags:\n  - 🃏\n---\n\n" + content
-			}
-			const newContent = content
-				.replace(/(^#+.*)\n+/gm, `$1\n—\n`)
-				.replace(/^([\wА-Яа-я`].*)\n\n+[^-_#]/gm, `$1<br>\n`)
-				// .replace(/(\n#)/gm, "\n$1")
 
+			const transformer = new FlashcardTransformer(view.data)
+			const newContent = transformer.transform()
 			view.setViewData(newContent, false)
 		});
 
