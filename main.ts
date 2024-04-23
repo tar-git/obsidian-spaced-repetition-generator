@@ -25,11 +25,17 @@ export default class SpacedRepetitionGenerator extends Plugin {
 				return
 			}
 			var content = view.data
-			const prefix = "---\ntags:\n  - 🃏\n---\n\n"
-			const newContent = prefix + content
-				.replace(/^(#+.*)\n/gm, "$1\n—")
-				.replace(/\n\n/g, "<br>\n")
-				.replace(/(\n#)/gm, "\n$1")
+			const hasTags = /tags:\n +-/gm;
+			if (hasTags.exec(content) != null) {
+				const tags = /(^tags:\n(^( +)-.*\n)*)/gm;
+				content = content.replace(tags, `$1$3- 🃏\n`);
+			} else {
+				content = "---\ntags:\n  - 🃏\n---\n\n" + content
+			}
+			const newContent = content
+				.replace(/(^#+.*)\n+/gm, `$1\n—\n`)
+				.replace(/^([\wА-Яа-я`].*)\n\n+[^-_#]/gm, `$1<br>\n`)
+				// .replace(/(\n#)/gm, "\n$1")
 
 			view.setViewData(newContent, false)
 		});
