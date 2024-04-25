@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Plugin, PluginSettingTab, Setting, addIcon, getIconIds } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Plugin, PluginSettingTab, Setting, addIcon, getIconIds, Command } from 'obsidian';
 import {FlashcardTransformer} from 'flashcard_transformer'
 
 // Remember to rename these classes and interfaces!
@@ -17,10 +17,7 @@ export default class SpacedRepetitionGenerator extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		// const ids = getIconIds()
-		// console.log(ids)
-
-		this.addRibbonIcon('dice', 'transform', async () => {
+		let transformCommand = () => {
 			let view = this.app.workspace.getActiveViewOfType(MarkdownView)
 			if (view?.data == null) {
 				return
@@ -29,6 +26,14 @@ export default class SpacedRepetitionGenerator extends Plugin {
 			const transformer = new FlashcardTransformer(view.data)
 			const newContent = transformer.transform()
 			view.setViewData(newContent, false)
+		}
+
+		this.addRibbonIcon('dice', 'transform', transformCommand);
+
+		this.addCommand({
+			id: 'transform-to-flashcards',
+			name: 'Transform to flashcards',
+			callback: transformCommand,
 		});
 
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.

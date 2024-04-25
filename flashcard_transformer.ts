@@ -81,9 +81,10 @@ export class FlashcardTransformer {
     }
     
     private processEmptyLine(): string | null {
-        if (this.isHeading(this.next) || this.isSeparator(this.next)) {
+        if (this.next == null || this.isHeading(this.next) || this.isSeparator(this.next)) {
+            let lastChar = this.next == null ? '' : '\n'
             if (this.flashcardContent.slice(-5, -1) == '<br>') {
-                this.flashcardContent = this.flashcardContent.slice(0, -5) + '\n'
+                this.flashcardContent = this.flashcardContent.slice(0, -5) + lastChar
             }
             return ''
         }
@@ -105,15 +106,23 @@ export class FlashcardTransformer {
         if (this.current == '---') {
             this.prevState = CurrentState.InsideProps
             this.state = CurrentState.None
-            return '  - 🃏\n---'
+            if (!this.alreadyHasFlashTag) {
+                return '  - ' + this.flashCardSymbol + '\n---'
+            }
+            return this.current
         }
         if (this.isTag(this.current)) {
+            this.alreadyHasFlashTag = this.hasFlashTag(this.current)
             return this.current
         } else {
             this.state = CurrentState.InsideProps
-            return '  - 🃏\n' + this.current
+            if (!this.alreadyHasFlashTag) {
+                return '  - ' + this.flashCardSymbol + '\n' + this.current
+            }
+            return this.current
         }
     }
+
 
     private setState() {
         if ([CurrentState.InsideProps, CurrentState.InsideTags].includes(this.state)) {
@@ -129,6 +138,10 @@ export class FlashcardTransformer {
         } else {
             this.state = CurrentState.None
         }
+    }
+
+    private hasFlashTag(line: string): boolean {
+        return line.indexOf(this.flashCardSymbol) != -1
     }
 
     private isHeading(line: string) : boolean {
@@ -159,4 +172,6 @@ export class FlashcardTransformer {
     private next: any = null
     private state: CurrentState
     private prevState: CurrentState
+    private alreadyHasFlashTag: boolean = false
+    private flashCardSymbol: string = "🃏"
 }
