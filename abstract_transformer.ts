@@ -118,6 +118,10 @@ export abstract class AbstractTransformer {
         return regex.test(line)
     }
 
+    protected isFlashCardSeparator(line: string) : boolean {
+        return line.indexOf(this.flashCardSeparator) >= 0
+    }
+
     protected isEmpty(line: string) : boolean {
         let regex = /^\s*$/
         return regex.test(line)
@@ -138,4 +142,5 @@ export abstract class AbstractTransformer {
     protected prevState: CurrentState
     protected alreadyHasFlashTag: boolean = false
     protected flashCardSymbol: string = "🃏"
+    protected flashCardSeparator: string = '—'
 }
