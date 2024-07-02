@@ -1,15 +1,6 @@
-import { AbstractTransformer } from "./abstract_transformer"
-
-enum CurrentState {
-    None,
-    InsideProps,
-    InsideTags,
-    Heading,
-    Empty,
-}
+import { AbstractTransformer, CurrentState } from "./abstract_transformer"
 
 export class NoteTransformer extends AbstractTransformer {
-   
     protected processHeadingLine(): string | null {
         if (!this.isEmpty(this.next) || this.next.includes('—')){
             this.next = ''
@@ -43,5 +34,9 @@ export class NoteTransformer extends AbstractTransformer {
             this.state = CurrentState.InsideProps
         }
         return this.current
+    }
+
+    protected processSnippet(): string | null {
+        return null
     }
 }

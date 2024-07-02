@@ -1,12 +1,4 @@
-import { AbstractTransformer } from "./abstract_transformer"
-
-enum CurrentState {
-    None,
-    InsideProps,
-    InsideTags,
-    Heading,
-    Empty,
-}
+import { AbstractTransformer, CurrentState } from "./abstract_transformer"
 
 export class FlashcardTransformer extends AbstractTransformer {
    
@@ -22,6 +14,9 @@ export class FlashcardTransformer extends AbstractTransformer {
         // if (this.isEmpty(this.next)) {
         //     this.current = this.current + '<br>'
         // }
+        if (this.isSnippetStart(this.current)) {
+            this.state = CurrentState.InsideSnippet
+        }
         return this.current
     }
     
@@ -35,6 +30,9 @@ export class FlashcardTransformer extends AbstractTransformer {
         }
         if (this.isFlashCardSeparator(this.outputContent.slice(-2, -1))) {
             return null
+        }
+        if (this.state == CurrentState.InsideSnippet) {
+            return this.current
         }
         return '<br>'
     }
@@ -58,5 +56,12 @@ export class FlashcardTransformer extends AbstractTransformer {
             }
             return this.current
         }
+    }
+
+    protected processSnippet(): string | null {
+        if (this.isSnippetEnd(this.current)) {
+            this.state = CurrentState.None
+        }
+        return this.current
     }
 }

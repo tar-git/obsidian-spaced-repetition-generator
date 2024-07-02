@@ -79,10 +79,12 @@ var AbstractTransformer = class {
         return this.processPropLine();
       case 2 /* InsideTags */:
         return this.processTagLine();
-      case 3 /* Heading */:
+      case 4 /* Heading */:
         return this.processHeadingLine();
-      case 4 /* Empty */:
+      case 5 /* Empty */:
         return this.processEmptyLine();
+      case 3 /* InsideSnippet */:
+        return this.processSnippet();
       default:
         return this.processRegular();
     }
@@ -104,16 +106,16 @@ var AbstractTransformer = class {
     return this.current;
   }
   setState() {
-    if ([1 /* InsideProps */, 2 /* InsideTags */].includes(this.state)) {
+    if ([1 /* InsideProps */, 2 /* InsideTags */, 3 /* InsideSnippet */].includes(this.state)) {
       return;
     }
     if (this.prevState != 1 /* InsideProps */) {
       this.prevState = this.state;
     }
     if (this.isHeading(this.current)) {
-      this.state = 3 /* Heading */;
+      this.state = 4 /* Heading */;
     } else if (this.isEmpty(this.current)) {
-      this.state = 4 /* Empty */;
+      this.state = 5 /* Empty */;
     } else {
       this.state = 0 /* None */;
     }
@@ -140,6 +142,14 @@ var AbstractTransformer = class {
     let regex = /^ +- \S+/;
     return regex.test(line);
   }
+  isSnippetStart(line) {
+    let regex = /^```+\S+$/;
+    return regex.test(line);
+  }
+  isSnippetEnd(line) {
+    let regex = /^```$/;
+    return regex.test(line);
+  }
 };
 
 // flashcard_transformer.ts
@@ -152,6 +162,9 @@ var FlashcardTransformer = class extends AbstractTransformer {
     return this.current;
   }
   processRegular() {
+    if (this.isSnippetStart(this.current)) {
+      this.state = 3 /* InsideSnippet */;
+    }
     return this.current;
   }
   processEmptyLine() {
@@ -164,6 +177,9 @@ var FlashcardTransformer = class extends AbstractTransformer {
     }
     if (this.isFlashCardSeparator(this.outputContent.slice(-2, -1))) {
       return null;
+    }
+    if (this.state == 3 /* InsideSnippet */) {
+      return this.current;
     }
     return "<br>";
   }
@@ -186,6 +202,12 @@ var FlashcardTransformer = class extends AbstractTransformer {
       }
       return this.current;
     }
+  }
+  processSnippet() {
+    if (this.isSnippetEnd(this.current)) {
+      this.state = 0 /* None */;
+    }
+    return this.current;
   }
 };
 
@@ -221,6 +243,9 @@ var NoteTransformer = class extends AbstractTransformer {
       this.state = 1 /* InsideProps */;
     }
     return this.current;
+  }
+  processSnippet() {
+    return null;
   }
 };
 

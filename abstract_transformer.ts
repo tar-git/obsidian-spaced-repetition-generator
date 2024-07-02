@@ -1,7 +1,8 @@
-enum CurrentState {
+export enum CurrentState {
     None,
     InsideProps,
     InsideTags,
+    InsideSnippet,
     Heading,
     Empty,
 }
@@ -55,6 +56,8 @@ export abstract class AbstractTransformer {
                 return this.processHeadingLine()
             case CurrentState.Empty:
                 return this.processEmptyLine()
+            case CurrentState.InsideSnippet:
+                return this.processSnippet()
             default:
                 return this.processRegular();
         }
@@ -69,10 +72,12 @@ export abstract class AbstractTransformer {
         }
         return this.current
     }
-    
+
     protected abstract processRegular() : string | null;
     
     protected abstract processEmptyLine(): string | null;
+    
+    protected abstract processSnippet(): string | null;
     
     protected processPropLine(): string | null {
         if (this.current == '---') {
@@ -89,7 +94,7 @@ export abstract class AbstractTransformer {
 
 
     protected setState() {
-        if ([CurrentState.InsideProps, CurrentState.InsideTags].includes(this.state)) {
+        if ([CurrentState.InsideProps, CurrentState.InsideTags, CurrentState.InsideSnippet].includes(this.state)) {
             return
         }
         if (this.prevState != CurrentState.InsideProps) {
@@ -129,6 +134,16 @@ export abstract class AbstractTransformer {
 
     protected isTag(line: string): boolean {
         let regex = /^ +- \S+/
+        return regex.test(line)
+    }
+
+    protected isSnippetStart(line: string): boolean {
+        let regex = /^```+\S+$/
+        return regex.test(line)
+    }
+
+    protected isSnippetEnd(line: string): boolean {
+        let regex = /^```$/
         return regex.test(line)
     }
 
